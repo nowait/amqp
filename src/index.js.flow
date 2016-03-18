@@ -1,9 +1,5 @@
 // @flow
 
-// TODO:
-// - AmqpManagedConnection -> AmqpManagedConnection
-// - AmqpcmChannelOptions -> AmqpManagedConnectionOptions
-
 // General Json type
 export type JsonValue = { [key:string]: JsonValue } | Array<JsonValue> | number | string | boolean | null
 
@@ -80,3 +76,22 @@ export type ConsumeResponse = {
 
 export type Ack = (message:Message) => any
 export type Nack = (message:Message) => any
+
+// Public API
+declare export function createChannel(connection:AmqpConnection|Promise<AmqpConnection>): Channel
+
+declare export function createManagedChannel(connection: AmqpManagedConnection): Channel
+
+declare export function consumeFrom(createChannel:Channel): (config:QueueConfig, messageHandler:MessageHandler) => Promise<{}>
+
+declare export function publishTo(createChannel:Channel): (config:QueueConfig) => Publisher
+
+declare export function parseJsonMessage(encoding: string): MessageParser<JsonValue>
+
+declare export function parseAndHandleMessage<C, R> (
+  parseMessage: MessageParser<C>,
+  handleFailure: MessageResultHandler<any>,
+  handleSuccess: MessageResultHandler<R>,
+  handleMessage: MessageContentHandler<C, R>): MessageHandler
+
+declare export function defaultParseAndHandleMessage(handleMessage: MessageContentHandler<JsonValue, any>): MessageHandler
