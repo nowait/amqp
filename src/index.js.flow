@@ -1,0 +1,84 @@
+// @flow
+
+// TODO:
+// - Channel -> AmqpChannel
+// - CreateChannel -> Channel
+// - AmqpcmConnection -> AmqpManagedConnection
+// - AmqpcmChannelOptions -> AmqpManagedConnectionOptions
+
+// General Json type
+export type JsonValue = { [key:string]: JsonValue } | Array<JsonValue> | number | string | boolean | null
+
+// Amqp connection
+// Incomplete type definition.  Includes only what is currently in use.
+export type AmqpConnection = {
+  createChannel:() => Promise<Channel>
+}
+
+// Amqp message
+export type Message = {
+  content: Buffer,
+  fields: {},
+  properties: {}
+}
+
+// Amqp Channel
+// Incomplete type definition.  Includes only what is currently in use.
+export type Channel = {
+  assertExchange:(exchangeName:string, type:string, options:{}) => Promise<AssertExchangeResponse>,
+  assertQueue:(queueName:string) => Promise<AssertQueueResponse>,
+  bindQueue:(queueName:string, exchangeName:string, routingKey:string) => Promise<BindQueueResponse>,
+  publish:(exchangeName:string, routingKey:string, messageBuffer:Buffer, options:PublishOptions) => boolean,
+  consume:(queueName:string, handleMessage:(message:Message)=>any) => Promise<ConsumeResponse>,
+  ack:Ack,
+  nack:Nack
+}
+
+// Amqp Connection Manager
+// Managed Connection type
+export type AmqpcmConnection = {
+  createChannel:(opts:AmqpcmChannelOptions) => Promise<Channel>
+}
+
+// Amqp Connection Manager Channel options
+export type AmqpcmChannelOptions = {
+  setup: SetupChannel
+}
+
+export type CreateChannel = (setup:SetupChannel) => Promise<Channel>
+export type SetupChannel = (chan:Channel) => Promise<Channel>
+export type AssertChannel = (config:QueueConfig, channel:Channel) => Promise<Channel>
+
+// Exchange, queue, and routingKey tuple
+export type QueueConfig = {exchangeName:string, queueName:string, routingKey:string}
+
+// Message handler function
+export type MessageHandler<R> = (ack:Ack, nack:Nack, message:Message) => Promise<R>
+
+export type MessageParser<T> = (msg: Message) => T
+export type MessageResultHandler<T> = (ack:Ack, nack:Nack, message:Message, result:T) => ?Promise<any>
+export type MessageContentHandler<C, R> = (content:C) => Promise<R>
+
+// Message publisher
+export type Publisher = (message:string) => Promise<boolean>
+
+export type PublishOptions = {}
+
+export type AssertExchangeResponse = {
+  exchange: string
+}
+
+export type AssertQueueResponse = {
+  queue: string,
+  messageCount: number,
+  consumerCount: number
+}
+
+export type BindQueueResponse = {};
+
+export type ConsumeResponse = {
+  consumerTag:string
+}
+
+export type Ack = (message:Message) => any
+export type Nack = (message:Message) => any
