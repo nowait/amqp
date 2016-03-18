@@ -1,9 +1,7 @@
 // @flow
 
 // TODO:
-// - Channel -> AmqpChannel
-// - CreateChannel -> Channel
-// - AmqpcmConnection -> AmqpManagedConnection
+// - AmqpManagedConnection -> AmqpManagedConnection
 // - AmqpcmChannelOptions -> AmqpManagedConnectionOptions
 
 // General Json type
@@ -12,7 +10,7 @@ export type JsonValue = { [key:string]: JsonValue } | Array<JsonValue> | number 
 // Amqp connection
 // Incomplete type definition.  Includes only what is currently in use.
 export type AmqpConnection = {
-  createChannel:() => Promise<Channel>
+  createChannel:() => Promise<AmqpChannel>
 }
 
 // Amqp message
@@ -22,9 +20,9 @@ export type Message = {
   properties: {}
 }
 
-// Amqp Channel
+// AmqpChannel
 // Incomplete type definition.  Includes only what is currently in use.
-export type Channel = {
+export type AmqpChannel = {
   assertExchange:(exchangeName:string, type:string, options:{}) => Promise<AssertExchangeResponse>,
   assertQueue:(queueName:string) => Promise<AssertQueueResponse>,
   bindQueue:(queueName:string, exchangeName:string, routingKey:string) => Promise<BindQueueResponse>,
@@ -36,18 +34,18 @@ export type Channel = {
 
 // Amqp Connection Manager
 // Managed Connection type
-export type AmqpcmConnection = {
-  createChannel:(opts:AmqpcmChannelOptions) => Promise<Channel>
+export type AmqpManagedConnection = {
+  createChannel:(opts:AmqpManagedChannelOptions) => Promise<AmqpChannel>
 }
 
 // Amqp Connection Manager Channel options
-export type AmqpcmChannelOptions = {
+export type AmqpManagedChannelOptions = {
   setup: SetupChannel
 }
 
-export type CreateChannel = (setup:SetupChannel) => Promise<Channel>
-export type SetupChannel = (chan:Channel) => Promise<Channel>
-export type AssertChannel = (config:QueueConfig, channel:Channel) => Promise<Channel>
+export type Channel = (setup:SetupChannel) => Promise<AmqpChannel>
+export type SetupChannel = (chan:AmqpChannel) => Promise<AmqpChannel>
+export type AssertChannel = (config:QueueConfig, channel:AmqpChannel) => Promise<AmqpChannel>
 
 // Exchange, queue, and routingKey tuple
 export type QueueConfig = {exchangeName:string, queueName:string, routingKey:string}

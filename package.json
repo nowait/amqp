@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "@nowait/_package_name_",
+  "name": "@nowait/amqp",
   "description": "Describe your package",
   "version": "1.0.0",
   "author": "engineering@nowait.com",
@@ -8,7 +8,7 @@
   "main": "build/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nowait/_package_name_"
+    "url": "git+https://github.com/nowait/amqp"
   },
   "directories": {
     "test": "test"
