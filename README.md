@@ -53,11 +53,12 @@ After creating a Channel, use `publishTo` to publish messages to a queue.
 ```js
 // Assuming channel was created using one of the approaches above
 
+import { publishTo } from '@nowait/amqp'
+
 const publishChannel = publishTo(channel)
 
-const queueConfig = {
+const publishConfig = {
   exchangeName: 'some-exchange',
-  queueName: 'some-queue',
   routingKey: 'some-routing-key'
 }
 
@@ -74,7 +75,9 @@ After creating a *duplex* Channel, use `consumeFrom` to consume messages from a 
 
 ```js
 import amqp from 'amqplib'
-import { createChannel } from '@nowait/amqp'
+import {
+  createChannel, consumeFrom, defaultParseAndHandleMessage
+} from '@nowait/amqp'
 
 // See amqplib documentation
 // http://www.squaremobius.net/amqp.node/channel_api.html#connect
@@ -103,7 +106,36 @@ const handler = defaultParseAndHandleMessage((data) => {
 consume(queueConfig, handler)
 ```
 
-## API
+# API
+
+## Types
+
+### type PublishConfig = ExchangeConfig & {routingKey: string}
+
+Exchange and routingKey pair for setting up a publisher
+Publishers don't care about queue names
+
+### type ConsumeConfig = PublishConfig & {queueName: string}
+
+Exchange, queue, and routingKey tuple for setting up a consumer
+
+### type PublishChannel = Channel<AmqpPublishChannel>
+
+A channel to which messages may be published
+
+### type ConsumeChannel = Channel<AmqpConsumeChannel>
+
+A channel from which messages may be consumed
+
+### type DuplexChannel = Channel<AmqpDuplexChannel>
+
+A channel that is both a PublishChannel and a ConsumeChannel
+
+### type Publisher = string &rArr Promise<boolean>
+
+Message publishing function type returned by `publishTo`
+
+## Functions
 
 ### createChannel : AmqpConnection &rArr; DuplexChannel
 
@@ -113,16 +145,22 @@ Create a Channel on a standard AmqpConnection (created with amqplib).  The Chann
 
 Create a Channel on an AmqpManagedConnection (created with amqp-connection-manager).  The Channel may only be used to publish messages.
 
-### consumeFrom : Channel &rArr; (QueueConfig, MessageHandler) &rArr; Promise<{}>
+### consumeFrom : ConsumeChannel &rArr; (ConsumeConfig, MessageHandler) &rArr; Promise<{}>
 
-### publishTo : Channel &rArr; QueueConfig &rArr; Publisher
+Begin consuming messages based on the exchangeName, queueName, and routingKey specified in ConsumeConfig
 
-**type Publisher = string &rArr Promise<boolean>**
+### publishTo : PublishChannel &rArr; PublishConfig &rArr; Publisher
+
+Create a Publisher function which can be used to publish messages to an exchange and routingKey specified in the provided PublishConfig.
 
 ### parseAndHandleMessage : MessageParser<C> &rArr; MessageResultHandler<mixed> &rArr; MessageResultHandler<R> &rArr; MessageContentHandler<C, R> &rArr; MessageHandler
 
-**type MessageHandler<R> = (ack:Ack, nack:Nack, message:Message) &rArr Promise<R>**
+Base function for creating a MessageHandler to parse and handle consumed messages.  Most of the time, you'll want to use `defaultParseAndHandleMessage`.  Use this if you need to parse messages from a different format or handle Ack/Nack differently.
 
 ### defaultParseAndHandleMessage : MessageContentHandler<JsonValue, mixed> &rArr; MessageHandler<mixed>
 
+Create a message handler that parses messages in JSON format, and automatically **Acks** upon success or failed message handling (IOW, it drops failed messages).
+
 ### parseJsonMessage : string &rArr; MessageParser<JsonValue>
+
+Helper to create a MessageParser for messages in JSON format.

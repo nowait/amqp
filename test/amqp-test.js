@@ -3,7 +3,7 @@
 import { describe, it } from 'mocha'
 import assert from 'assert'
 import { spy } from 'sinon'
-import { assertChannel, consumeFrom, publishTo } from '../src/amqp'
+import { assertQueue, assertExchange, consumeFrom, publishTo } from '../src/amqp'
 
 const randomString = () => `${Math.random()}`
 
@@ -43,14 +43,14 @@ describe('amqp', () => {
     return { exchangeName, queueName, routingKey }
   }
 
-  describe('assertChannel', () => {
+  describe('assertQueue', () => {
     it('should assert exchange and queue, then bind queue', async () => {
       const config = randomConfig()
       const { exchangeName, queueName, routingKey } = config
 
       const channel = new ChannelMock()
 
-      await assertChannel(config, channel)
+      await assertQueue(config, channel)
 
       calledOnceWithArgs(channel.assertExchange, is(exchangeName), is('topic'), options => options.autoDelete === false)
       assert(channel.assertExchange.calledBefore(channel.assertQueue))
@@ -66,32 +66,33 @@ describe('amqp', () => {
     it('should return channel', async () => {
       const channel = new ChannelMock()
 
-      const actual = await assertChannel(randomConfig(), channel)
+      const actual = await assertQueue(randomConfig(), channel)
 
       assert.strictEqual(channel, actual)
     })
   })
 
-  // describe('initChannel', () => {
-  //   it('should create channel', () => {
-  //     const expected = {}
-  //     const actual = initChannel(() => expected, () => {}, randomConfig())
-  //
-  //     assert.strictEqual(expected, actual)
-  //   })
-  //
-  //   it('should assert channel', () => {
-  //     const assertChannel = spy((config, channel) => channel)
-  //     const config = randomConfig()
-  //     const channel = {}
-  //
-  //     const actual = initChannel(setup => setup(channel), assertChannel, config)
-  //
-  //     assert.strictEqual(channel, actual)
-  //     assert(assertChannel.calledOnce)
-  //     assert(assertChannel.calledWithExactly(config, channel))
-  //   })
-  // })
+  describe('assertExchange', () => {
+    it('should assert exchange and queue, then bind queue', async () => {
+      const config = randomConfig()
+      const { exchangeName } = config
+
+      const channel = new ChannelMock()
+
+      await assertExchange(config, channel)
+
+      calledOnceWithArgs(channel.assertExchange, is(exchangeName), is('topic'), options => options.autoDelete === false)
+      assert(channel.assertExchange.calledBefore(channel.assertQueue))
+    })
+
+    it('should return channel', async () => {
+      const channel = new ChannelMock()
+
+      const actual = await assertExchange(randomConfig(), channel)
+
+      assert.strictEqual(channel, actual)
+    })
+  })
 
   describe('consumeFrom', () => {
     it('should consume from correct queue on the channel', async () => {
