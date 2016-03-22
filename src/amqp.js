@@ -1,15 +1,21 @@
 'use strict'
 // @flow
 
+// Unfortunately, eslint sees the imported type AmqpChannel as a symbol,
+// but does *not* see its usage in the type constraint of assertChannel.
+// So, eslint will fail with a no-unused-var error, hence disabling it for
+// the one line below.
+
 import type {
-  AmqpConnection, AmqpChannel, Channel, AssertChannel, QueueConfig,
-  MessageHandler, Publisher
+  AmqpChannel, // eslint-disable-line no-unused-vars
+  AmqpConnection, PublishChannel, ConsumeChannel, DuplexChannel,
+  QueueConfig, MessageHandler, Publisher
 } from './index'
 
-// Given an AmqpConnection, returns a CreateChannel, which can be
+// Given an AmqpConnection, returns a Channel, which can be
 // passed to consumeFrom or publishTo
 export const createChannel
-  : (connection:AmqpConnection|Promise<AmqpConnection>) => Channel =
+  : (connection:AmqpConnection|Promise<AmqpConnection>) => DuplexChannel =
   connection => async setup => {
     const c = await connection
     return c.createChannel().then(setup)
@@ -17,26 +23,26 @@ export const createChannel
 
 // Begin consuming messages from a queue with messageHandler
 export const consumeFrom
-  : (createChannel:Channel) => (config:QueueConfig, messageHandler:MessageHandler) => Promise<{}> =
-  createChannel => async (config, messageHandler) => {
-    const channel = await initChannel(createChannel, assertChannel, config)
+  : (channel:ConsumeChannel) => (config:QueueConfig, messageHandler:MessageHandler) => Promise<{}> =
+  channel => async (config, messageHandler) => {
+    const ch = await channel(amqpChannel => assertChannel(config, amqpChannel))
     const { queueName } = config
 
-    const ack = message => channel.ack(message)
-    const nack = message => channel.nack(message)
+    const ack = message => ch.ack(message)
+    const nack = message => ch.nack(message)
     const handleMessage = message => messageHandler(ack, nack, message)
 
-    return channel.consume(queueName, handleMessage)
+    return ch.consume(queueName, handleMessage)
   }
 
 // Create function which publishes messages to a queue
 export const publishTo
-  : (createChannel:Channel) => (config:QueueConfig) => Publisher =
-  (createChannel) => (config) => {
-    const channel = initChannel(createChannel, assertChannel, config)
+  : (channel:PublishChannel) => (config:QueueConfig) => Publisher =
+  (channel) => (config) => {
+    const chp = channel(amqpChannel => assertChannel(config, amqpChannel))
 
     return async (message) => {
-      const ch = await channel
+      const ch = await chp
       const { exchangeName, routingKey } = config
       const messageBuffer = new Buffer(message, 'utf8')
       const options = {persistent: true}
@@ -44,18 +50,11 @@ export const publishTo
     }
   }
 
-// Helper to create a channel and to setup exchange, queue, and routing key
-export const initChannel
-    : (createChannel:Channel, assertChannel:AssertChannel, config:QueueConfig) => Promise<AmqpChannel> =
-    (createChannel, assertChannel, config) =>
-    createChannel(channel => assertChannel(config, channel))
-
 // Helper to assert exchangeName, queueName, and bind queue with routing key
-export const assertChannel: AssertChannel =
-  async ({ exchangeName, queueName, routingKey }, channel) => {
-    await channel.assertExchange(exchangeName, 'topic', { autoDelete: false })
-    await channel.assertQueue(queueName)
-    await channel.bindQueue(queueName, exchangeName, routingKey)
+export async function assertChannel<C:AmqpChannel> ({ exchangeName, queueName, routingKey }: QueueConfig, channel: C): Promise<C> {
+  await channel.assertExchange(exchangeName, 'topic', { autoDelete: false })
+  await channel.assertQueue(queueName)
+  await channel.bindQueue(queueName, exchangeName, routingKey)
 
-    return channel
-  }
+  return channel
+}

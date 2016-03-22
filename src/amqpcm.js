@@ -1,11 +1,11 @@
 'use strict'
 // @flow
 
-import type { AmqpManagedConnection, Channel } from './index'
+import type { AmqpManagedConnection, PublishChannel } from './index'
 
-// Given an AmqpcmConnection, returns a CreateChannel, which can be
+// Given an AmqpManagedConnection, returns a Channel, which can be
 // passed to consumeFrom or publishTo (see ./amqp.js)
 export const createChannel:
-  (connection: AmqpManagedConnection) => Channel =
+  (connection: AmqpManagedConnection) => PublishChannel =
   connection => async setup =>
     connection.createChannel({ setup })

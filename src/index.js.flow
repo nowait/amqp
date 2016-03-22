@@ -1,12 +1,12 @@
 // @flow
 
 // General Json type
-export type JsonValue = { [key:string]: JsonValue } | Array<JsonValue> | number | string | boolean | null
+export type JsonValue = { [key: string]: JsonValue } | Array<JsonValue> | number | string | boolean | null
 
 // Amqp connection
 // Incomplete type definition.  Includes only what is currently in use.
 export type AmqpConnection = {
-  createChannel:() => Promise<AmqpChannel>
+  createChannel:() => Promise<AmqpDuplexChannel>
 }
 
 // Amqp message
@@ -19,42 +19,50 @@ export type Message = {
 // AmqpChannel
 // Incomplete type definition.  Includes only what is currently in use.
 export type AmqpChannel = {
-  assertExchange:(exchangeName:string, type:string, options:{}) => Promise<AssertExchangeResponse>,
-  assertQueue:(queueName:string) => Promise<AssertQueueResponse>,
-  bindQueue:(queueName:string, exchangeName:string, routingKey:string) => Promise<BindQueueResponse>,
-  publish:(exchangeName:string, routingKey:string, messageBuffer:Buffer, options:PublishOptions) => boolean,
-  consume:(queueName:string, handleMessage:(message:Message)=>any) => Promise<ConsumeResponse>,
+  assertExchange:(exchangeName: string, type: string, options: {}) => Promise<AssertExchangeResponse>,
+  assertQueue:(queueName: string) => Promise<AssertQueueResponse>,
+  bindQueue:(queueName: string, exchangeName: string, routingKey: string) => Promise<BindQueueResponse>,
+
   ack:Ack,
   nack:Nack
 }
 
+export type AmqpPublishChannel = AmqpChannel & {
+  publish:(exchangeName: string, routingKey: string, messageBuffer: Buffer, options: PublishOptions) => boolean
+}
+
+export type AmqpConsumeChannel = AmqpChannel & {
+  consume:(queueName: string, handleMessage: (message: Message) => mixed) => Promise<ConsumeResponse>
+}
+
+export type AmqpDuplexChannel = AmqpPublishChannel & AmqpConsumeChannel
+
 // Amqp Connection Manager
 // Managed Connection type
 export type AmqpManagedConnection = {
-  createChannel:(opts:AmqpManagedChannelOptions) => Promise<AmqpChannel>
+  createChannel:(opts: AmqpManagedChannelOptions) => Promise<AmqpPublishChannel>
 }
 
 // Amqp Connection Manager Channel options
 export type AmqpManagedChannelOptions = {
-  setup: SetupChannel
+  setup: SetupChannel<AmqpPublishChannel>
 }
 
-export type Channel = (setup:SetupChannel) => Promise<AmqpChannel>
-export type SetupChannel = (chan:AmqpChannel) => Promise<AmqpChannel>
-export type AssertChannel = (config:QueueConfig, channel:AmqpChannel) => Promise<AmqpChannel>
+export type CreateChannel<C> = (setup: SetupChannel<C>) => Promise<C>
+export type SetupChannel<C> = (channel: C) => Promise<C>
 
 // Exchange, queue, and routingKey tuple
-export type QueueConfig = {exchangeName:string, queueName:string, routingKey:string}
+export type QueueConfig = {exchangeName: string, queueName: string, routingKey: string}
 
 // Message handler function
-export type MessageHandler<R> = (ack:Ack, nack:Nack, message:Message) => Promise<R>
+export type MessageHandler<R> = (ack: Ack, nack: Nack, message: Message) => Promise<R>
 
 export type MessageParser<T> = (msg: Message) => T
-export type MessageResultHandler<T> = (ack:Ack, nack:Nack, message:Message, result:T) => ?Promise<any>
-export type MessageContentHandler<C, R> = (content:C) => Promise<R>
+export type MessageResultHandler<T> = (ack: Ack, nack: Nack, message: Message, result: T) => ?Promise<any>
+export type MessageContentHandler<C, R> = (content: C) => Promise<R>
 
 // Message publisher
-export type Publisher = (message:string) => Promise<boolean>
+export type Publisher = (message: string) => Promise<boolean>
 
 export type PublishOptions = {}
 
@@ -71,27 +79,32 @@ export type AssertQueueResponse = {
 export type BindQueueResponse = {};
 
 export type ConsumeResponse = {
-  consumerTag:string
+  consumerTag: string
 }
 
-export type Ack = (message:Message) => any
-export type Nack = (message:Message) => any
+export type Ack = (message: Message) => void
+export type Nack = (message: Message) => void
 
 // Public API
-declare export function createChannel(connection:AmqpConnection|Promise<AmqpConnection>): Channel
 
-declare export function createManagedChannel(connection: AmqpManagedConnection): Channel
+export type PublishChannel = CreateChannel<AmqpPublishChannel>
+export type ConsumeChannel = CreateChannel<AmqpConsumeChannel>
+export type DuplexChannel = CreateChannel<AmqpDuplexChannel>
 
-declare export function consumeFrom(createChannel:Channel): (config:QueueConfig, messageHandler:MessageHandler) => Promise<{}>
+declare export function createChannel(connection: AmqpConnection|Promise<AmqpConnection>): DuplexChannel
 
-declare export function publishTo(createChannel:Channel): (config:QueueConfig) => Publisher
+declare export function createManagedChannel(connection: AmqpManagedConnection): PublishChannel
+
+declare export function consumeFrom(channel: ConsumeChannel): (config: QueueConfig, messageHandler: MessageHandler) => Promise<{}>
+
+declare export function publishTo(channel: PublishChannel): (config: QueueConfig) => Publisher
 
 declare export function parseJsonMessage(encoding: string): MessageParser<JsonValue>
 
 declare export function parseAndHandleMessage<C, R> (
   parseMessage: MessageParser<C>,
-  handleFailure: MessageResultHandler<any>,
+  handleFailure: MessageResultHandler<mixed>,
   handleSuccess: MessageResultHandler<R>,
-  handleMessage: MessageContentHandler<C, R>): MessageHandler
+  handleMessage: MessageContentHandler<C, R>): MessageHandler<R>
 
-declare export function defaultParseAndHandleMessage(handleMessage: MessageContentHandler<JsonValue, any>): MessageHandler
+declare export function defaultParseAndHandleMessage(handleMessage: MessageContentHandler<JsonValue, mixed>): MessageHandler<mixed>

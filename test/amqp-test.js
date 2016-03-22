@@ -3,7 +3,7 @@
 import { describe, it } from 'mocha'
 import assert from 'assert'
 import { spy } from 'sinon'
-import { initChannel, assertChannel, consumeFrom, publishTo } from '../src/amqp'
+import { assertChannel, consumeFrom, publishTo } from '../src/amqp'
 
 const randomString = () => `${Math.random()}`
 
@@ -72,26 +72,26 @@ describe('amqp', () => {
     })
   })
 
-  describe('initChannel', () => {
-    it('should create channel', () => {
-      const expected = {}
-      const actual = initChannel(() => expected, () => {}, randomConfig())
-
-      assert.strictEqual(expected, actual)
-    })
-
-    it('should assert channel', () => {
-      const assertChannel = spy((config, channel) => channel)
-      const config = randomConfig()
-      const channel = {}
-
-      const actual = initChannel(setup => setup(channel), assertChannel, config)
-
-      assert.strictEqual(channel, actual)
-      assert(assertChannel.calledOnce)
-      assert(assertChannel.calledWithExactly(config, channel))
-    })
-  })
+  // describe('initChannel', () => {
+  //   it('should create channel', () => {
+  //     const expected = {}
+  //     const actual = initChannel(() => expected, () => {}, randomConfig())
+  //
+  //     assert.strictEqual(expected, actual)
+  //   })
+  //
+  //   it('should assert channel', () => {
+  //     const assertChannel = spy((config, channel) => channel)
+  //     const config = randomConfig()
+  //     const channel = {}
+  //
+  //     const actual = initChannel(setup => setup(channel), assertChannel, config)
+  //
+  //     assert.strictEqual(channel, actual)
+  //     assert(assertChannel.calledOnce)
+  //     assert(assertChannel.calledWithExactly(config, channel))
+  //   })
+  // })
 
   describe('consumeFrom', () => {
     it('should consume from correct queue on the channel', async () => {
