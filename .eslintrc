@@ -1,0 +1,3 @@
+{
+    "extends": "@nowait/eslint-config"
+}

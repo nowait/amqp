@@ -1,0 +1,13 @@
+
+{
+  "presets": ["es2015-node5"],
+  "plugins": [
+    "syntax-flow",
+    "transform-flow-strip-types",
+    "transform-class-properties",
+    ["transform-async-to-module-method", {
+      "module": "creed",
+      "method": "coroutine"
+    }]
+  ]
+}

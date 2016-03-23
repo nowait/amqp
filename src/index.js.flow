@@ -1,0 +1,128 @@
+// @flow
+
+// General Json type
+export type JsonValue = { [key: string]: JsonValue } | Array<JsonValue> | number | string | boolean | null
+
+// Amqp connection
+// Incomplete type definition.  Includes only what is currently in use.
+export type AmqpConnection = {
+  createChannel:() => Promise<AmqpDuplexChannel>
+}
+
+// Amqp message
+export type Message = {
+  content: Buffer,
+  fields: {},
+  properties: {}
+}
+
+// AmqpChannel
+// Incomplete type definition.  Includes only what is currently in use.
+export type AmqpChannel = {
+  assertExchange:(exchangeName: string, type: string, options: {}) => Promise<AssertExchangeResponse>,
+  assertQueue:(queueName: string) => Promise<AssertQueueResponse>,
+  bindQueue:(queueName: string, exchangeName: string, routingKey: string) => Promise<BindQueueResponse>,
+
+  ack:Ack,
+  nack:Nack
+}
+
+type Publish = {
+  publish:(exchangeName: string, routingKey: string, messageBuffer: Buffer, options: PublishOptions) => boolean
+}
+
+type Consume = {
+  consume:(queueName: string, handleMessage: (message: Message) => mixed) => Promise<ConsumeResponse>
+}
+
+export type AmqpPublishChannel = AmqpChannel & Publish
+
+export type AmqpConsumeChannel = AmqpChannel & Consume
+
+export type AmqpDuplexChannel = AmqpChannel & (Publish & Consume)
+
+// Amqp Connection Manager
+// Managed Connection type
+export type AmqpManagedConnection = {
+  createChannel:(opts: AmqpManagedChannelOptions) => Promise<AmqpPublishChannel>
+}
+
+// Amqp Connection Manager Channel options
+export type AmqpManagedChannelOptions = {
+  setup: SetupChannel<AmqpPublishChannel>
+}
+
+export type Channel<C> = (setup: SetupChannel<C>) => Promise<C>
+export type SetupChannel<C> = (channel: C) => Promise<C>
+
+// Message handler function
+export type MessageHandler<R> = (ack: Ack, nack: Nack, message: Message) => Promise<R>
+
+export type MessageParser<T> = (msg: Message) => T
+export type MessageResultHandler<T> = (ack: Ack, nack: Nack, message: Message, result: T) => ?Promise<mixed>
+export type MessageContentHandler<C, R> = (content: C) => Promise<R>
+
+// Message publisher
+export type Publisher = (message: string) => Promise<boolean>
+
+export type PublishOptions = {}
+
+export type AssertExchangeResponse = {
+  exchange: string
+}
+
+export type AssertQueueResponse = {
+  queue: string,
+  messageCount: number,
+  consumerCount: number
+}
+
+export type BindQueueResponse = {};
+
+export type ConsumeResponse = {
+  consumerTag: string
+}
+
+export type Ack = (message: Message) => void
+export type Nack = (message: Message) => void
+
+// Public API
+
+// Types
+
+// Base configuration type
+export type ExchangeConfig = {exchangeName: string}
+
+// Exchange and routingKey pair for setting up a publisher
+// Publishers don't care about queue names
+export type PublishConfig = ExchangeConfig & {routingKey: string}
+
+// Exchange, queue, and routingKey tuple for setting up a consumer
+export type ConsumeConfig = PublishConfig & {queueName: string}
+
+// A channel to which messages may be published
+export type PublishChannel = Channel<AmqpPublishChannel>
+
+// A channel from which messages may be consumed
+export type ConsumeChannel = Channel<AmqpConsumeChannel>
+
+// A channel that is both a PublishChannel and a ConsumeChannel
+export type DuplexChannel = Channel<AmqpDuplexChannel>
+
+declare export function createChannel(connection: AmqpConnection|Promise<AmqpConnection>): DuplexChannel
+
+declare export function createManagedChannel(connection: AmqpManagedConnection): PublishChannel
+
+declare export function consumeFrom<C:ConsumeChannel> (channel: C): (config: ConsumeConfig, messageHandler: MessageHandler) => Promise<{}>
+
+declare export function publishTo<C:PublishChannel> (channel: C): (config: PublishConfig) => Publisher
+
+declare export function parseJsonMessage(encoding: string): MessageParser<JsonValue>
+
+declare export function parseAndHandleMessage<C, R> (
+  parseMessage: MessageParser<C>,
+  handleFailure: MessageResultHandler<mixed>,
+  handleSuccess: MessageResultHandler<R>,
+  handleMessage: MessageContentHandler<C, R>): MessageHandler<R>
+
+declare export function defaultParseAndHandleMessage(handleMessage: MessageContentHandler<JsonValue, mixed>): MessageHandler<mixed>
