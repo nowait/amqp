@@ -8,7 +8,7 @@ import type {
 
 export default function parseAndHandleMessage<C, R> (
   parseMessage: MessageParser<C>,
-  handleFailure: MessageResultHandler<any>,
+  handleFailure: MessageResultHandler<mixed>,
   handleSuccess: MessageResultHandler<R>,
   handleMessage: MessageContentHandler<C, R>): MessageHandler {
   return async (ack, nack, message) => {
