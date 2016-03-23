@@ -63,10 +63,10 @@ const publishConfig = {
 }
 
 // Create a publisher function that will publish messages
-// using the exchangeName, queueName, and routingKey
-const publisher = publishChannel(queueConfig)
+// using the exchangeName and routingKey
+const publish = publishChannel(publishConfig)
 
-publisher(JSON.stringify({ hello: 'world' }))
+publish(JSON.stringify({ hello: 'world' }))
 ```
 
 ### Consume message from a queue
@@ -87,13 +87,13 @@ const channel = createChannel(connection)
 
 const consume = consumeFrom(channel)
 
-const queueConfig = {
+const consumeConfig = {
   exchangeName: 'some-exchange',
   queueName: 'some-queue',
   routingKey: 'some-routing-key'
 }
 
-const handler = defaultParseAndHandleMessage((data) => {
+const handleMessage = defaultParseAndHandleMessage((data) => {
   // Content will be the *parsed* message content.
   // Do something with it
   // IMPORTANT: Always return a promise to indicate
@@ -103,7 +103,7 @@ const handler = defaultParseAndHandleMessage((data) => {
 
 // Start consuming messages from the exchangeName, queueName,
 // and routingKey.
-consume(queueConfig, handler)
+consume(consumeConfig, handleMessage)
 ```
 
 # API
