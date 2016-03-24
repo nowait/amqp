@@ -1,5 +1,4 @@
 {
-  "private": true,
   "name": "@nowait/amqp",
   "description": "Describe your package",
   "version": "1.0.0",
