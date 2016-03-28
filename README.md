@@ -93,7 +93,9 @@ const consumeConfig = {
   routingKey: 'some-routing-key'
 }
 
-const handleMessage = defaultParseAndHandleMessage((data) => {
+const handleError = async (e) => logError(e)
+
+const handleMessage = defaultParseAndHandleMessage(handleError, (data) => {
   // Content will be the *parsed* message content.
   // Do something with it
   // IMPORTANT: Always return a promise to indicate
@@ -110,28 +112,28 @@ consume(consumeConfig, handleMessage)
 
 ## Types
 
-### type PublishConfig = ExchangeConfig & {routingKey: string}
+### type PublishConfig = `{exchangeName: string, routingKey: string}`
 
 Exchange and routingKey pair for setting up a publisher
 Publishers don't care about queue names
 
-### type ConsumeConfig = PublishConfig & {queueName: string}
+### type ConsumeConfig = PublishConfig & `{queueName: string}`
 
 Exchange, queue, and routingKey tuple for setting up a consumer
 
-### type PublishChannel = Channel<AmqpPublishChannel>
+### type PublishChannel = Channel&lt;AmqpPublishChannel&gt;
 
 A channel to which messages may be published
 
-### type ConsumeChannel = Channel<AmqpConsumeChannel>
+### type ConsumeChannel = Channel&lt;AmqpConsumeChannel&gt;
 
 A channel from which messages may be consumed
 
-### type DuplexChannel = Channel<AmqpDuplexChannel>
+### type DuplexChannel = Channel&lt;AmqpDuplexChannel&gt;
 
 A channel that is both a PublishChannel and a ConsumeChannel
 
-### type Publisher = string &rArr Promise<boolean>
+### type Publisher = string &rArr; Promise&lt;boolean&gt;
 
 Message publishing function type returned by `publishTo`
 
@@ -145,7 +147,7 @@ Create a Channel on a standard AmqpConnection (created with amqplib).  The Chann
 
 Create a Channel on an AmqpManagedConnection (created with amqp-connection-manager).  The Channel may only be used to publish messages.
 
-### consumeFrom : ConsumeChannel &rArr; (ConsumeConfig, MessageHandler) &rArr; Promise<{}>
+### consumeFrom : ConsumeChannel &rArr; (ConsumeConfig, MessageHandler) &rArr; Promise&lt;{}&gt;
 
 Begin consuming messages based on the exchangeName, queueName, and routingKey specified in ConsumeConfig
 
@@ -153,14 +155,14 @@ Begin consuming messages based on the exchangeName, queueName, and routingKey sp
 
 Create a Publisher function which can be used to publish messages to an exchange and routingKey specified in the provided PublishConfig.
 
-### parseAndHandleMessage : MessageParser<C> &rArr; MessageResultHandler<mixed> &rArr; MessageResultHandler<R> &rArr; MessageContentHandler<C, R> &rArr; MessageHandler
+### parseAndHandleMessage : (MessageParser&lt;C&gt;, MessageResultHandler&lt;mixed&gt;, MessageResultHandler&lt;R&gt;, MessageContentHandler&lt;C, R&gt;) &rArr; MessageHandler
 
 Base function for creating a MessageHandler to parse and handle consumed messages.  Most of the time, you'll want to use `defaultParseAndHandleMessage`.  Use this if you need to parse messages from a different format or handle Ack/Nack differently.
 
-### defaultParseAndHandleMessage : MessageContentHandler<JsonValue, mixed> &rArr; MessageHandler<mixed>
+### defaultParseAndHandleMessage : ((error:mixed &rArr; Promise&lt;mixed&gt;), MessageContentHandler&lt;JsonValue, mixed&gt;) &rArr; MessageHandler&lt;mixed&gt;
 
-Create a message handler that parses messages in JSON format, and automatically **Acks** upon success or failed message handling (IOW, it drops failed messages).
+Create a message handler that parses messages in JSON format, and automatically **acks** upon success or failed message handling. If an errors occurs during message parsing (e.g. invalid JSON) *or* message handling, the error will be passed to the error handler function (first param), *and the message will still be **acked***.  If you need different error handling ack/nack behavior, use `parseAndHandleMessage`.
 
-### parseJsonMessage : string &rArr; MessageParser<JsonValue>
+### parseJsonMessage : string &rArr; MessageParser&lt;JsonValue&gt;
 
 Helper to create a MessageParser for messages in JSON format.
