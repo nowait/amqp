@@ -161,7 +161,7 @@ Base function for creating a MessageHandler to parse and handle consumed message
 
 ### defaultParseAndHandleMessage : ((error:mixed &rArr; Promise&lt;mixed&gt;), MessageContentHandler&lt;JsonValue, mixed&gt;) &rArr; MessageHandler&lt;mixed&gt;
 
-Create a message handler that parses messages in JSON format, and automatically **Acks** upon success or failed message handling (IOW, it drops failed messages).
+Create a message handler that parses messages in JSON format, and automatically **acks** upon success or failed message handling. If an errors occurs during message parsing (e.g. invalid JSON) *or* message handling, the error will be passed to the error handler function (first param), *and the message will still be **acked***.  If you need different error handling ack/nack behavior, use `parseAndHandleMessage`.
 
 ### parseJsonMessage : string &rArr; MessageParser&lt;JsonValue&gt;
 
