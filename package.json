@@ -1,7 +1,8 @@
 {
+
   "name": "@nowait/amqp",
   "description": "Describe your package",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "author": "engineering@nowait.com",
   "license": "UNLICENSED",
   "main": "build/index.js",
