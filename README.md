@@ -46,9 +46,9 @@ const connection = amqpcm.connect([...uri], options)
 const channel = createManagedChannel(connection)
 ```
 
-### Publish messages to a queue
+### Publish messages to an exchange
 
-After creating a Channel, use `publishTo` to publish messages to a queue.
+After creating a Channel, use `publishTo` to publish messages to an exchange using a routingKey.
 
 ```js
 // Assuming channel was created using one of the approaches above
