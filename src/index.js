@@ -6,6 +6,7 @@ import { createChannel as createManagedChannel } from './amqpcm'
 import parseAndHandleMessage from './parseAndHandleMessage'
 import defaultParseAndHandleMessage from './defaultParseAndHandleMessage'
 import parseJsonMessage from './parseJsonMessage'
+import alwaysAck from './alwaysAck'
 
 export {
   createChannel,
@@ -14,5 +15,6 @@ export {
   publishTo,
   parseAndHandleMessage,
   defaultParseAndHandleMessage,
-  parseJsonMessage
+  parseJsonMessage,
+  alwaysAck
 }

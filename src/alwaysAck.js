@@ -1,14 +1,10 @@
 'use strict'
 /* @flow */
 
-type HandleError = (err:Error) => mixed
-type HandleMessage<T:Object> = (message:T) => mixed
-type AckMessage<T:Object> = (message:T) => void
-type AmqpMiddleware<T:Object>
-  = (ack:AckMessage<T>, nack:mixed, message:T) => Promise
+import type { MessageHandler } from './index'
 
 const alwaysAck
-  : (handleError:HandleError, f:HandleMessage) => AmqpMiddleware =
+  : (handleError:(err:Error) => mixed, f:(message:Object) => mixed) => MessageHandler =
   (handleError, f) => async (ack, _, message) => {
     try {
       await f(message)
