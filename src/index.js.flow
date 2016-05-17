@@ -113,7 +113,7 @@ declare export function createChannel(connection: AmqpConnection|Promise<AmqpCon
 
 declare export function createManagedChannel(connection: AmqpManagedConnection): PublishChannel
 
-declare export function consumeFrom<C:ConsumeChannel> (channel: C): (config: ConsumeConfig, messageHandler: MessageHandler) => Promise<{}>
+declare export function consumeFrom<C:DuplexChannel> (channel: C): (config: ConsumeConfig, messageHandler: MessageHandler) => Promise<{}>
 
 declare export function publishTo<C:PublishChannel> (channel: C): (config: PublishConfig) => Publisher
 
