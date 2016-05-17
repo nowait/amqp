@@ -3,16 +3,8 @@
 
 import type { MessageHandler } from './index'
 
-const alwaysAck
-  : (handleError:(err:Error) => mixed, f:(message:Object) => mixed) => MessageHandler =
-  (handleError, f) => async (ack, _, message) => {
-    try {
-      await f(message)
-    } catch (err) {
-      await handleError(err)
-    } finally {
-      ack(message)
-    }
-  }
+import { ackOnComplete, ackOnError } from './ackOn'
+import parseAndHandleMessage from './parseAndHandleMessage'
 
-export default alwaysAck
+export default (handleError:(e:mixed) => Promise<mixed>, f:(message:Object) => Promise<mixed>): MessageHandler =>
+  parseAndHandleMessage(x => x, ackOnError(handleError), ackOnComplete, f)
