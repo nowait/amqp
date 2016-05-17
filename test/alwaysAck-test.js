@@ -2,7 +2,7 @@
 
 import { describe, it } from 'mocha'
 import assert from 'assert'
-import { spy } from 'sinon'
+import { spy, match } from 'sinon'
 
 import alwaysAck from '../src/alwaysAck'
 
@@ -18,8 +18,8 @@ describe('alwaysAck', () => {
 
     await middleware(ack, nack, message)
 
-    assert(handleMessage.calledWithExactly(message))
-    assert(ack.calledWithExactly(message))
+    assert(handleMessage.calledWithExactly(match.same(message)))
+    assert(ack.calledWithExactly(match.same(message)))
     assert(nack.notCalled)
     assert(handleError.notCalled)
   })
@@ -38,8 +38,8 @@ describe('alwaysAck', () => {
 
     await middleware(ack, nack, message)
 
-    assert(handleMessage.calledWithExactly(message))
-    assert(ack.calledWithExactly(message))
+    assert(handleMessage.calledWithExactly(match.same(message)))
+    assert(ack.calledWithExactly(match.same(message)))
     assert(nack.notCalled)
     assert(handleError.calledWithExactly(err))
   })
