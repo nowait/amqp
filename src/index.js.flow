@@ -107,7 +107,7 @@ export type PublishChannel = Channel<AmqpPublishChannel>
 export type ConsumeChannel = Channel<AmqpConsumeChannel>
 
 // A channel that is both a PublishChannel and a ConsumeChannel
-export type DuplexChannel = Channel<AmqpDuplexChannel>
+export type DuplexChannel = PublishChannel & ConsumeChannel
 
 declare export function createChannel(connection: AmqpConnection|Promise<AmqpConnection>): DuplexChannel
 
