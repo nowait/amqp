@@ -37,6 +37,7 @@ function coverage {
 function ci {
     flags="-i -v /home/ubuntu/jenkins/mount/jobs/amqp/workspace:/src -w /src"
     install
+    lint
     typecheck
     coverage
 }
