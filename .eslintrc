@@ -1,3 +1,11 @@
 {
-    "extends": "@nowait/eslint-config"
+    "extends": "@nowait/eslint-config",
+    "rules": {
+        "arrow-parens": 0,
+        "no-duplicate-imports": 0,
+        "camelcase": 0
+    },
+    "globals": {
+        "Iterable": false
+    }
 }
