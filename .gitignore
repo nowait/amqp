@@ -3,4 +3,6 @@ build
 .npmrc
 npm-debug.log
 coverage/
+.nyc_output/
 .idea/
+.DS_Store

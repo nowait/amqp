@@ -14,7 +14,7 @@ import type {
 // Given an AmqpConnection, returns a Channel, which can be
 // passed to consumeFrom or publishTo
 export const createChannel
-  : (connection:AmqpConnection|Promise<AmqpConnection>) => DuplexChannel =
+  : (connection: AmqpConnection | Promise<AmqpConnection>) => DuplexChannel =
   connection => async setup => {
     const c = await connection
     return c.createChannel().then(setup)
@@ -35,7 +35,7 @@ export function consumeFrom<C:ConsumeChannel> (channel: C): (config: ConsumeConf
 }
 
 // Create function which publishes messages to a queue
-export function publishTo<C:PublishChannel> (channel: C): (config: PublishConfig) => Publisher {
+export function publishTo<C: PublishChannel> (channel: C): (config: PublishConfig) => Publisher {
   return function (config) {
     const chp = channel(amqpChannel => assertExchange(config, amqpChannel))
 
@@ -62,7 +62,7 @@ export async function assertQueue<C:AmqpChannel> (config: ConsumeConfig, channel
 }
 
 // Helper to assert exchangeName
-export async function assertExchange<C:AmqpChannel> ({ exchangeName }: ExchangeConfig, channel: C): Promise<C> {
+export async function assertExchange<C: AmqpChannel> ({ exchangeName }: ExchangeConfig, channel: C): Promise<C> {
   await channel.assertExchange(exchangeName, 'topic', { autoDelete: false })
 
   return channel
