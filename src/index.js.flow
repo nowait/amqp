@@ -126,4 +126,6 @@ declare export function parseAndHandleMessage<C, R> (
   handleSuccess: MessageResultHandler<R>,
   handleMessage: MessageContentHandler<C, R>): MessageHandler<R>
 
-declare export function defaultParseAndHandleMessage(handleError: (e:mixed) => Promise<mixed>, handleMessage: MessageContentHandler<JsonValue, mixed>): MessageHandler<mixed>
+declare export function defaultParseAndHandleMessage(
+  handleError: MessageErrorHandler<Error, mixed>,
+  handleMessage: MessageContentHandler<JsonValue, mixed>): MessageHandler<mixed>
