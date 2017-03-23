@@ -10,7 +10,7 @@ export default function parseAndHandleMessage<C, R> (
   parseMessage: MessageParser<C>,
   handleFailure: MessageResultHandler<Error>,
   handleSuccess: MessageResultHandler<R>,
-  handleMessage: MessageContentHandler<C, R>): MessageHandler {
+  handleMessage: MessageContentHandler<C, R>): MessageHandler<mixed> {
   return async (ack, nack, message) => {
     try {
       // Step 1: Triage message

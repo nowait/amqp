@@ -25,9 +25,10 @@ const verifyMessageHandling = (handleError, handleMessage, content) => {
   }
 
   let handleErrorCount = 0
-  const _handleError = async (e) => {
+  const _handleError = async (e, msg) => {
     handleErrorCount++
-    return handleError(e)
+    assert.strictEqual(message, msg)
+    return handleError(e, msg)
   }
 
   const parseAndHandle = defaultParseAndHandleMessage(_handleError, _handleMessage)

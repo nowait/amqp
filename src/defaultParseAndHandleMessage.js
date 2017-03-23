@@ -18,7 +18,7 @@ const ackOnComplete:
     ack(message)
 
 const ackOnError:
-  (handleError: MessageErrorHandler) => MessageResultHandler<Error> =
+  (handleError: MessageErrorHandler<Error, mixed>) => MessageResultHandler<Error> =
   (handleError) => async (ack, nack, message, e) => {
     try {
       await handleError(e, message)
