@@ -42,9 +42,9 @@ const verifyMessageHandling = (handleError, handleMessage, content) => {
 
 const verifyCounts = (expectedAckCount, expectedHandleCount, expectedHandleErrorCount) =>
   ({ ackCount, handleCount, handleErrorCount }) => {
-    assert.equal(expectedAckCount, ackCount)
-    assert.equal(expectedHandleCount, handleCount)
-    assert.equal(expectedHandleErrorCount, handleErrorCount)
+    assert.strictEqual(expectedAckCount, ackCount)
+    assert.strictEqual(expectedHandleCount, handleCount)
+    assert.strictEqual(expectedHandleErrorCount, handleErrorCount)
   }
 
 describe('defaultParseAndHandleMessage', () => {
@@ -53,13 +53,15 @@ describe('defaultParseAndHandleMessage', () => {
   it('should call handleError and ack if message handling fails', () => {
     const content = JSON.stringify({ foo: 'bar' })
 
+    const expectedError = new Error()
+
     const handleError = async (error) => {
-      assert(error instanceof Error)
+      assert.strictEqual(expectedError, error)
     }
 
     const handleMessage = async (data) => {
       assert.equal(content, JSON.stringify(data))
-      throw new Error()
+      throw expectedError
     }
 
     return verifyMessageHandling(handleError, handleMessage, content)
@@ -69,14 +71,16 @@ describe('defaultParseAndHandleMessage', () => {
   it('should ack if handleError fails', () => {
     const content = JSON.stringify({ foo: 'bar' })
 
+    const expectedError = new Error()
+
     const handleError = async (error) => {
-      assert(error instanceof Error)
+      assert.strictEqual(expectedError, error)
       throw new Error()
     }
 
     const handleMessage = async (data) => {
       assert.equal(content, JSON.stringify(data))
-      throw new Error()
+      throw expectedError
     }
 
     return verifyMessageHandling(handleError, handleMessage, content)
