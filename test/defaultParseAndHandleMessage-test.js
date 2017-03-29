@@ -5,154 +5,116 @@ import assert from 'assert'
 
 import defaultParseAndHandleMessage from '../src/defaultParseAndHandleMessage'
 
+const verifyMessageHandling = (handleError, handleMessage, content) => {
+  const message = { content }
+
+  let handleCount = 0
+  const _handleMessage = async (data) => {
+    handleCount++
+    return handleMessage(data)
+  }
+
+  let ackCount = 0
+  const ack = msg => {
+    ackCount++
+    assert.strictEqual(message, msg)
+  }
+
+  const nack = () => {
+    throw new Error('should not nack')
+  }
+
+  let handleErrorCount = 0
+  const _handleError = async (e, msg) => {
+    handleErrorCount++
+    assert.strictEqual(message, msg)
+    return handleError(e, msg)
+  }
+
+  const parseAndHandle = defaultParseAndHandleMessage(_handleError, _handleMessage)
+
+  return parseAndHandle(ack, nack, message)
+    .then(
+      () => ({ ackCount, handleCount, handleErrorCount }),
+      () => Promise.reject({ ackCount, handleCount, handleErrorCount })
+    )
+}
+
+const verifyCounts = (expectedAckCount, expectedHandleCount, expectedHandleErrorCount) =>
+  ({ ackCount, handleCount, handleErrorCount }) => {
+    assert.strictEqual(expectedAckCount, ackCount)
+    assert.strictEqual(expectedHandleCount, handleCount)
+    assert.strictEqual(expectedHandleErrorCount, handleErrorCount)
+  }
+
 describe('defaultParseAndHandleMessage', () => {
   // TODO: This *should nack*, but see comments in parseAndHandleMessage
   // for why it (temporarily) acks instead.
   it('should call handleError and ack if message handling fails', () => {
     const content = JSON.stringify({ foo: 'bar' })
-    const message = { content }
 
-    let handleCount = 0
-    const handleMessage = async (data) => {
-      handleCount++
-      assert.equal(content, JSON.stringify(data))
-      throw new Error()
-    }
+    const expectedError = new Error()
 
-    let ackCount = 0
-    const ack = msg => {
-      ackCount++
-      assert.strictEqual(message, msg)
-    }
-
-    const nack = () => {
-      throw new Error('should not nack')
-    }
-
-    let handleErrorCount = 0
     const handleError = async (error) => {
-      handleErrorCount++
-      assert(error instanceof Error)
+      assert.strictEqual(expectedError, error)
     }
 
-    const parseAndHandle = defaultParseAndHandleMessage(handleError, handleMessage)
+    const handleMessage = async (data) => {
+      assert.equal(content, JSON.stringify(data))
+      throw expectedError
+    }
 
-    return parseAndHandle(ack, nack, message)
-      .then(() => {
-        assert.equal(1, ackCount)
-        assert.equal(1, handleCount)
-        assert.equal(1, handleErrorCount)
-      })
+    return verifyMessageHandling(handleError, handleMessage, content)
+      .then(verifyCounts(1, 1, 1))
   })
 
   it('should ack if handleError fails', () => {
     const content = JSON.stringify({ foo: 'bar' })
-    const message = { content }
 
-    let handleCount = 0
-    const handleMessage = async (data) => {
-      handleCount++
-      assert.equal(content, JSON.stringify(data))
-      throw new Error()
-    }
+    const expectedError = new Error()
 
-    let ackCount = 0
-    const ack = msg => {
-      ackCount++
-      assert.strictEqual(message, msg)
-    }
-
-    const nack = () => {
-      throw new Error('should not nack')
-    }
-
-    let handleErrorCount = 0
     const handleError = async (error) => {
-      handleErrorCount++
-      assert(error instanceof Error)
+      assert.strictEqual(expectedError, error)
       throw new Error()
     }
 
-    const parseAndHandle = defaultParseAndHandleMessage(handleError, handleMessage)
+    const handleMessage = async (data) => {
+      assert.equal(content, JSON.stringify(data))
+      throw expectedError
+    }
 
-    return parseAndHandle(ack, nack, message)
-      .then(assert.ifError, () => {
-        assert.equal(1, ackCount)
-        assert.equal(1, handleCount)
-        assert.equal(1, handleErrorCount)
-      })
+    return verifyMessageHandling(handleError, handleMessage, content)
+      .then(assert.ifError, verifyCounts(1, 1, 1))
   })
 
   it('should call handleError and ack if parsing fails', () => {
     const content = undefined
-    const message = { content }
 
-    let handleCount = 0
-    const handleMessage = async (data) => {
-      handleCount++
-      throw new Error()
-    }
-
-    let ackCount = 0
-    const ack = msg => {
-      ackCount++
-      assert.strictEqual(message, msg)
-    }
-
-    const nack = () => {
-      throw new Error('should not nack')
-    }
-
-    let handleErrorCount = 0
     const handleError = async (error) => {
-      handleErrorCount++
       assert(error instanceof Error)
     }
 
-    const parseAndHandle = defaultParseAndHandleMessage(handleError, handleMessage)
+    const handleMessage = async (data) => {
+      throw new Error()
+    }
 
-    return parseAndHandle(ack, nack, message)
-      .then(() => {
-        assert.equal(1, ackCount)
-        assert.equal(0, handleCount)
-        assert.equal(1, handleErrorCount)
-      })
+    return verifyMessageHandling(handleError, handleMessage, content)
+      .then(verifyCounts(1, 0, 1))
   })
 
   it('should ack if message handling succeeds', () => {
     const content = JSON.stringify({ foo: 'bar' })
-    const message = { content }
 
-    let handleCount = 0
+    const handleError = async (e) => {
+      throw e
+    }
+
     const handleMessage = async (data) => {
-      handleCount++
       assert.equal(content, JSON.stringify(data))
       return data
     }
 
-    let ackCount = 0
-    const ack = msg => {
-      ackCount++
-      assert.strictEqual(message, msg)
-    }
-
-    const nack = () => {
-      throw new Error('should not nack')
-    }
-
-    let handleErrorCount = 0
-    const handleError = async (e) => {
-      handleErrorCount++
-      throw e
-    }
-
-    const parseAndHandle = defaultParseAndHandleMessage(handleError, handleMessage)
-
-    return parseAndHandle(ack, nack, message)
-      .then(() => {
-        assert.equal(1, ackCount)
-        assert.equal(1, handleCount)
-        assert.equal(0, handleErrorCount)
-      })
+    return verifyMessageHandling(handleError, handleMessage, content)
+      .then(verifyCounts(1, 1, 0))
   })
 })

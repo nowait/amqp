@@ -61,6 +61,7 @@ export type MessageHandler<R> = (ack: Ack, nack: Nack, message: Message) => Prom
 export type MessageParser<T> = (msg: Message) => T
 export type MessageResultHandler<T> = (ack: Ack, nack: Nack, message: Message, result: T) => ?Promise<mixed>
 export type MessageContentHandler<C, R> = (content: C) => Promise<R>
+export type MessageErrorHandler<E, R> = (e: E, msg: Message) => Promise<R>
 
 // Message publisher
 export type Publisher = (message: string) => Promise<boolean>
@@ -125,4 +126,6 @@ declare export function parseAndHandleMessage<C, R> (
   handleSuccess: MessageResultHandler<R>,
   handleMessage: MessageContentHandler<C, R>): MessageHandler<R>
 
-declare export function defaultParseAndHandleMessage(handleError: (e:mixed) => Promise<mixed>, handleMessage: MessageContentHandler<JsonValue, mixed>): MessageHandler<mixed>
+declare export function defaultParseAndHandleMessage(
+  handleError: MessageErrorHandler<Error, mixed>,
+  handleMessage: MessageContentHandler<JsonValue, mixed>): MessageHandler<mixed>

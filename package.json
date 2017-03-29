@@ -1,7 +1,7 @@
 {
   "name": "@nowait/amqp",
   "description": "Describe your package",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "author": "engineering@nowait.com",
   "license": "UNLICENSED",
   "main": "build/index.js",
@@ -15,7 +15,7 @@
   "scripts": {
     "build": "babel -D -d build src",
     "test": "npm run check && npm run coverage",
-    "coverage": "babel-node node_modules/.bin/isparta cover node_modules/.bin/_mocha -- --reporter dot --recursive",
+    "coverage": "nyc mocha --reporter dot --recursive",
     "check": "flow && npm run lint",
     "lint": "jsinspect src && jsinspect --identifiers -t 35 test && eslint src test",
     "unit-test": "mocha",
@@ -25,25 +25,26 @@
     "build/"
   ],
   "devDependencies": {
-    "@nowait/eslint-config": "^1.0.3",
-    "assert": "^1.3.0",
-    "babel-cli": "^6.6.4",
-    "babel-core": "^6.6.4",
-    "babel-eslint": "^5.0.0",
-    "babel-plugin-syntax-flow": "^6.5.0",
-    "babel-plugin-transform-async-to-module-method": "^6.7.0",
-    "babel-plugin-transform-class-properties": "^6.6.0",
-    "babel-plugin-transform-flow-strip-types": "^6.6.4",
+    "@nowait/eslint-config": "^3.0.0",
+    "assert": "^1.4.1",
+    "babel-cli": "^6.24.0",
+    "babel-core": "^6.24.0",
+    "babel-eslint": "^7.2.0",
+    "babel-plugin-syntax-flow": "^6.18.0",
+    "babel-plugin-transform-async-to-module-method": "^6.22.0",
+    "babel-plugin-transform-class-properties": "^6.23.0",
+    "babel-plugin-transform-flow-strip-types": "^6.22.0",
     "babel-preset-es2015-node5": "^1.1.2",
-    "babel-register": "^6.6.0",
-    "eslint": "~2.2.0",
-    "flow-bin": "^0.22.1",
+    "babel-register": "^6.24.0",
+    "eslint": "^3.18.0",
+    "flow-bin": "0.26.0",
     "isparta": "^4.0.0",
-    "jsinspect": "^0.8.0",
-    "mocha": "^2.4.5",
-    "sinon": "^1.17.3"
+    "jsinspect": "^0.10.1",
+    "mocha": "^3.2.0",
+    "nyc": "^10.1.2",
+    "sinon": "^2.1.0"
   },
   "dependencies": {
-    "creed": "^1.0.1"
+    "creed": "^1.2.1"
   }
 }

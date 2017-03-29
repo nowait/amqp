@@ -93,7 +93,10 @@ const consumeConfig = {
   routingKey: 'some-routing-key'
 }
 
-const handleError = async (e) => logError(e)
+const handleError = async (e, message) => {
+  // message will be the raw AMQP message
+  logError(e, message)
+}
 
 const handleMessage = defaultParseAndHandleMessage(handleError, (data) => {
   // Content will be the *parsed* message content.
@@ -159,9 +162,9 @@ Create a Publisher function which can be used to publish messages to an exchange
 
 Base function for creating a MessageHandler to parse and handle consumed messages.  Most of the time, you'll want to use `defaultParseAndHandleMessage`.  Use this if you need to parse messages from a different format or handle Ack/Nack differently.
 
-### defaultParseAndHandleMessage : ((error:mixed &rArr; Promise&lt;mixed&gt;), MessageContentHandler&lt;JsonValue, mixed&gt;) &rArr; MessageHandler&lt;mixed&gt;
+### defaultParseAndHandleMessage : (MessageErrorHandler&lt;Error, mixed&gt; &rArr; MessageContentHandler&lt;JsonValue, mixed&gt;) &rArr; MessageHandler&lt;mixed&gt;
 
-Create a message handler that parses messages in JSON format, and automatically **acks** upon success or failed message handling. If an errors occurs during message parsing (e.g. invalid JSON) *or* message handling, the error will be passed to the error handler function (first param), *and the message will still be **acked***.  If you need different error handling ack/nack behavior, use `parseAndHandleMessage`.
+Create a message handler that parses messages in JSON format, and automatically **acks** upon success or failed message handling. If an errors occurs during message parsing (e.g. invalid JSON) *or* message handling, the error and raw AMQP message will be passed to the error handler function.  The message will still be **acked** after the error handler returns.  If you need different error handling ack/nack behavior, use `parseAndHandleMessage`.
 
 ### parseJsonMessage : string &rArr; MessageParser&lt;JsonValue&gt;
 
