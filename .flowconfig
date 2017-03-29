@@ -13,7 +13,4 @@
 [include]
 src/
 
-[libs]
-flow-libs
-
 [options]

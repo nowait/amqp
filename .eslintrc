@@ -1,3 +1,16 @@
 {
-    "extends": "@nowait/eslint-config"
+    "extends": "@nowait/eslint-config",
+    "plugins": [
+        "babel"
+    ],
+    "rules": {
+        "arrow-parens": 0,
+        "no-duplicate-imports": 0,
+        "camelcase": 0,
+        "babel/generator-star-spacing": 1,
+        "generator-star-spacing": 0
+    },
+    "globals": {
+        "Iterable": false
+    }
 }
